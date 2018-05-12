@@ -1,0 +1,674 @@
+
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  ** This notice applies to any and all portions of this file
+  * that are not between comment pairs USER CODE BEGIN and
+  * USER CODE END. Other portions of this file, whether 
+  * inserted by the user or by software development tools
+  * are owned by their respective copyright owners.
+  *
+  * COPYRIGHT(c) 2018 STMicroelectronics
+  *
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  ******************************************************************************
+  */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "stm32f7xx_hal.h"
+
+/* USER CODE BEGIN Includes */
+#include  <errno.h>
+#include  <sys/unistd.h> // STDOUT_FILENO, STDERR_FILENO
+#include  <stdlib.h>
+#include  <stdio.h>
+
+/* USER CODE END Includes */
+
+/* Private variables ---------------------------------------------------------*/
+CAN_HandleTypeDef hcan1;
+
+ETH_HandleTypeDef heth;
+
+UART_HandleTypeDef huart3;
+
+PCD_HandleTypeDef hpcd_USB_OTG_FS;
+
+/* USER CODE BEGIN PV */
+
+typedef union  ipv4_haeder{
+
+	uint8_t  u8[20];
+	uint16_t u16[10];
+
+}ipv4_haeder;
+
+ipv4_haeder ipv4_header;
+
+
+ETH_DMADescTypeDef Tx_Desc[1]; 			//Ethernet virable
+uint8_t Tx_buf[1524] = {0};
+
+
+uint32_t pTxMailbox ;
+CAN_TxHeaderTypeDef  CAN_TX_pHeader;  	//CAN bus virable
+CAN_RxHeaderTypeDef  CAN_RX_pHeader;
+uint8_t CAN_RX_buffer[8];
+uint8_t* CAN_TX_buffer;
+CAN_FilterTypeDef FilterConfig;
+
+
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART3_UART_Init(void);
+static void MX_USB_OTG_FS_PCD_Init(void);
+static void MX_ETH_Init(void);
+static void MX_CAN1_Init(void);
+static void MX_NVIC_Init(void);
+
+/* USER CODE BEGIN PFP */
+/* Private function prototypes -----------------------------------------------*/
+//int _write(int file, char *data, int len);
+int _write(int file, char *ptr, int len);
+void uint_32_To_string_hex(uint32_t ID);
+
+/* USER CODE END PFP */
+
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  *
+  * @retval None
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration----------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART3_UART_Init();
+  MX_USB_OTG_FS_PCD_Init();
+  MX_ETH_Init();
+  MX_CAN1_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
+  /* USER CODE BEGIN 2 */
+
+  HAL_ETH_DMATxDescListInit(&heth,Tx_Desc,Tx_buf,1);
+  HAL_ETH_Start(&heth);
+  ITM_SendChar( 65 );   //  Send ASCII code 65 = ’A’
+  //Destination address
+  Tx_buf[0] = 0x10;
+  Tx_buf[1] = 0x00;
+  Tx_buf[2] = 0x5C;
+  Tx_buf[3] = 0x00;
+  Tx_buf[4] = 0x00;
+  Tx_buf[5] = 0x01;
+
+  //Source address
+   Tx_buf[6]  = 0xC0;
+   Tx_buf[7]  = 0x4A;
+   Tx_buf[8]  = 0x00;
+   Tx_buf[9]  = 0x21;
+   Tx_buf[10] = 0xFE;
+   Tx_buf[11] = 0xF3;
+
+   //0x8000 Ethernet Configuration Testing Protocol
+
+   Tx_buf[12] = 0x08;
+   Tx_buf[13] = 0x00;//////
+
+   Tx_buf[14] = 0x40 | 0x5;
+   Tx_buf[15] = 0x00 | 0x0; // DSCP == 0 best effort ///
+
+   {//Total length
+
+	   uint16_t temp = 70;
+	   Tx_buf[16] = (uint8_t)temp >> 8;
+	   Tx_buf[17] = (uint8_t)temp;
+
+   }
+   Tx_buf[18] = 0x00; // identification
+   Tx_buf[19] = 0x00;
+
+   Tx_buf[20] = 0x40; // flag DF
+   Tx_buf[21] = 0x00; // fregment offset
+
+   Tx_buf[22] = 0xFF; // ttl
+   Tx_buf[23] = 0x11; // protocol UDP 0x11
+
+   Tx_buf[24] = 0x00; // header checksum
+   Tx_buf[25] = 0x00; // header checksum
+
+
+   Tx_buf[26] = 0x01; // source IP
+   Tx_buf[27] = 0x02;
+   Tx_buf[28] = 0x03;
+   Tx_buf[29] = 0x04;
+
+   Tx_buf[30] = 0x05; // destination IP
+   Tx_buf[31] = 0x06;
+   Tx_buf[32] = 0x07;
+   Tx_buf[33] = 0x08;
+
+
+
+//calculate checksum
+{
+uint16_t ans_checksum;
+uint16_t arr[20];
+uint32_t arr32 = 0;
+uint32_t temp =  1;
+
+	for(int i = 0 ; i < 10 ; i ++ ){
+		arr[i] =  *((uint16_t*)(Tx_buf+14+i*2))<<8;
+		arr[i] |=  *((uint16_t*)(Tx_buf+15+i*2)) & 0x00ff;
+	}
+
+	for(int i=0;i<10;i++)
+		arr32 = arr32 + arr[i];
+
+	while(temp)
+	{
+		temp = 0xf0000 & arr32;
+		temp = temp >> 16;
+		arr32 &= 0xffff;
+		arr32 = arr32 + temp;
+	}
+
+	arr32 =~ arr32;
+
+	ans_checksum = (uint16_t)arr32;
+
+	Tx_buf[24] = (uint8_t)(ans_checksum >> 8);
+	Tx_buf[25] = (uint8_t)ans_checksum;
+
+}//end calculate checksum
+
+
+//set the UDP header
+{
+
+	uint16_t source_port = 2500;
+	uint16_t destination_port = 2501;
+	uint16_t leangth = 70;
+
+	Tx_buf[34] = (uint8_t)(source_port >> 8);
+	Tx_buf[35] = (uint8_t)source_port;
+
+	Tx_buf[36] = (uint8_t)(destination_port >> 8);
+	Tx_buf[37] = (uint8_t)destination_port;
+
+	Tx_buf[38] = (uint8_t)(leangth >> 8);
+	Tx_buf[39] = (uint8_t)leangth;
+
+	Tx_buf[40] = 0;
+    Tx_buf[41] = 0;
+
+
+}
+
+
+   {
+	   uint8_t ch[50] = "ELIK IS THE KING";
+
+	   for(int i = 0;i<50 ; i++)
+		   Tx_buf[42+i] =  ch[i];
+
+   }
+  if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
+ 	   _Error_Handler(__FILE__, __LINE__);
+
+
+   //====  CAN bus =====//
+
+   __HAL_CAN_ENABLE_IT(&hcan1,CAN_IT_TX_MAILBOX_EMPTY); //Enable CAN Tx interrupt
+   __HAL_CAN_ENABLE_IT(&hcan1,CAN_IT_RX_FIFO0_MSG_PENDING);
+   __HAL_CAN_ENABLE_IT(&hcan1,CAN_IT_RX_FIFO1_MSG_PENDING);
+
+
+   FilterConfig.FilterIdHigh = 0xFFFFU;
+   FilterConfig.FilterIdLow  = 0xFFFFU;
+   FilterConfig.FilterMaskIdHigh = 0x0000U;
+   FilterConfig.FilterMaskIdLow = 0x0000U;
+   FilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+   //FilterConfig.FilterNumber = 0;
+   FilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+   FilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+   FilterConfig.FilterActivation  = ENABLE;
+   FilterConfig.FilterBank = 0;
+
+   HAL_CAN_ConfigFilter(&hcan1, &FilterConfig);
+   HAL_CAN_Start(&hcan1);
+
+
+   uint8_t aData[8] = "ELIK";
+   CAN_TX_buffer = aData;
+   CAN_TX_pHeader.StdId = 0x400;
+   CAN_TX_pHeader.DLC = 8;
+   CAN_TX_pHeader.RTR = 0;
+   CAN_TX_pHeader.ExtId = 0;
+
+
+
+	if( HAL_CAN_AddTxMessage(&hcan1, &CAN_TX_pHeader,CAN_TX_buffer, &pTxMailbox) != HAL_OK)
+		_Error_Handler(__FILE__, __LINE__);
+
+
+
+
+
+
+
+
+
+
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+/*
+
+*/
+   printf("\rMain wheel \n");
+
+  while (1)
+  {
+
+  /* USER CODE END WHILE */
+
+  /* USER CODE BEGIN 3 */
+
+  }
+  /* USER CODE END 3 */
+
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+
+  RCC_OscInitTypeDef RCC_OscInitStruct;
+  RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
+
+    /**Configure the main internal regulator output voltage 
+    */
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+
+    /**Initializes the CPU, AHB and APB busses clocks 
+    */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 144;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 6;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Initializes the CPU, AHB and APB busses clocks 
+    */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_CLK48;
+  PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
+  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure the Systick interrupt time 
+    */
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+
+    /**Configure the Systick 
+    */
+  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+
+  /* SysTick_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* CAN1_TX_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(CAN1_TX_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(CAN1_TX_IRQn);
+  /* CAN1_RX0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+  /* CAN1_RX1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+  /* ETH_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(ETH_IRQn);
+}
+
+/* CAN1 init function */
+static void MX_CAN1_Init(void)
+{
+
+  hcan1.Instance = CAN1;
+  hcan1.Init.Prescaler = 2;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
+  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_10TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_8TQ;
+  hcan1.Init.TimeTriggeredMode = DISABLE;
+  hcan1.Init.AutoBusOff = DISABLE;
+  hcan1.Init.AutoWakeUp = DISABLE;
+  hcan1.Init.AutoRetransmission = DISABLE;
+  hcan1.Init.ReceiveFifoLocked = DISABLE;
+  hcan1.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* ETH init function */
+static void MX_ETH_Init(void)
+{
+
+   uint8_t MACAddr[6] ;
+
+  heth.Instance = ETH;
+  heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_DISABLE;
+  heth.Init.Speed = ETH_SPEED_100M;
+  heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
+  heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
+  MACAddr[0] = 0x00;
+  MACAddr[1] = 0x80;
+  MACAddr[2] = 0xE1;
+  MACAddr[3] = 0x00;
+  MACAddr[4] = 0x00;
+  MACAddr[5] = 0x00;
+  heth.Init.MACAddr = &MACAddr[0];
+  heth.Init.RxMode = ETH_RXPOLLING_MODE;
+  heth.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
+  heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
+
+  /* USER CODE BEGIN MACADDRESS */
+    
+  /* USER CODE END MACADDRESS */
+
+  if (HAL_ETH_Init(&heth) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* USART3 init function */
+static void MX_USART3_UART_Init(void)
+{
+
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* USB_OTG_FS init function */
+static void MX_USB_OTG_FS_PCD_Init(void)
+{
+
+  hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
+  hpcd_USB_OTG_FS.Init.dev_endpoints = 6;
+  hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
+  hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.ep0_mps = DEP0CTL_MPS_64;
+  hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+  hpcd_USB_OTG_FS.Init.Sof_enable = ENABLE;
+  hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.vbus_sensing_enable = ENABLE;
+  hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
+  if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/** Configure pins as 
+        * Analog 
+        * Input 
+        * Output
+        * EVENT_OUT
+        * EXTI
+*/
+static void MX_GPIO_Init(void)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : USER_Btn_Pin */
+  GPIO_InitStruct.Pin = USER_Btn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LD3_Pin LD2_Pin */
+  GPIO_InitStruct.Pin = LD3_Pin|LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
+  GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USB_OverCurrent_Pin */
+  GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+}
+
+/* USER CODE BEGIN 4 */
+
+
+int _write(int file, char *data, int len)
+{
+      HAL_UART_Transmit(&huart3, (uint8_t*)data, len, 10);
+      return len;
+}
+
+
+void uint_32_To_string_hex(uint32_t ID){
+
+	uint8_t data[8];
+
+
+
+
+	data[3] = 0xf & ID;
+	data[2] = 0xff & (8 >> ID);
+	data[1] = 0xff & (16 >> ID);
+	data[0] = 0xff & (24 >> ID);
+/*
+	for(int i=0;i<4;i++){
+
+		switch(data[i]){
+
+		case
+
+		}
+
+	}
+*/
+
+	HAL_UART_Transmit(&huart3, (uint8_t*)data, 4, 10);
+
+}
+
+
+/*
+int _write(int file, char *ptr, int len)
+{
+	int DataIdx;
+
+	for (DataIdx = 0; DataIdx < len; DataIdx++)
+	{
+	   ITM_SendChar( *ptr++ );
+	}
+
+	return len;
+}
+*/
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  file: The file name as string.
+  * @param  line: The line in file as a number.
+  * @retval None
+  */
+void _Error_Handler(char *file, int line)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+	printf("\r failed to %s in line %d \n",file,line);
+	return ;
+  while(1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t* file, uint32_t line)
+{ 
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

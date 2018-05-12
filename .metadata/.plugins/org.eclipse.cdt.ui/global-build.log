@@ -1,0 +1,89 @@
+23:19:39 **** Incremental Build of configuration Debug for project Test ****
+make all 
+make: Nothing to be done for 'all'.
+23:19:48 **** Incremental Build of configuration Debug for project Test ****
+make all 
+make: Nothing to be done for 'all'.
+23:24:38 **** Incremental Build of configuration Debug for project Test ****
+make all 
+make: Nothing to be done for 'all'.
+23:28:19 **** Incremental Build of configuration Debug for project Test ****
+make all 
+Building file: ../Src/main.c
+Invoking: MCU GCC Compiler
+C:\Users\user\Documents\GitHub\nucleo144_ethernet_node\Test\Debug
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32F767xx -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Device/ST/STM32F7xx/Include" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+Finished building: ../Src/main.c
+ 
+Building target: Test.elf
+Invoking: MCU GCC Linker
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -specs=nosys.specs -specs=nano.specs -T"../STM32F767ZITx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "Test.elf" @"objects.list"   -lm
+Finished building target: Test.elf
+ 
+make --no-print-directory post-build
+Generating binary and Printing size information:
+arm-none-eabi-objcopy -O binary "Test.elf" "Test.bin"
+arm-none-eabi-size "Test.elf"
+   text	   data	    bss	    dec	    hex	filename
+  18808	    120	   4520	  23448	   5b98	Test.elf
+ 
+23:48:00 **** Incremental Build of configuration Debug for project Test ****
+make all 
+Building file: ../Src/main.c
+Invoking: MCU GCC Compiler
+C:\Users\user\Documents\GitHub\nucleo144_ethernet_node\Test\Debug
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32F767xx -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Device/ST/STM32F7xx/Include" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+Finished building: ../Src/main.c
+ 
+Building target: Test.elf
+Invoking: MCU GCC Linker
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -specs=nosys.specs -specs=nano.specs -T"../STM32F767ZITx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "Test.elf" @"objects.list"   -lm
+Finished building target: Test.elf
+ 
+make --no-print-directory post-build
+Generating binary and Printing size information:
+arm-none-eabi-objcopy -O binary "Test.elf" "Test.bin"
+arm-none-eabi-size "Test.elf"
+   text	   data	    bss	    dec	    hex	filename
+  18852	    120	   4520	  23492	   5bc4	Test.elf
+ 
+23:49:23 **** Incremental Build of configuration Debug for project Test ****
+make all 
+Building file: ../Src/main.c
+Invoking: MCU GCC Compiler
+C:\Users\user\Documents\GitHub\nucleo144_ethernet_node\Test\Debug
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32F767xx -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Device/ST/STM32F7xx/Include" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+Finished building: ../Src/main.c
+ 
+Building target: Test.elf
+Invoking: MCU GCC Linker
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -specs=nosys.specs -specs=nano.specs -T"../STM32F767ZITx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "Test.elf" @"objects.list"   -lm
+Finished building target: Test.elf
+ 
+make --no-print-directory post-build
+Generating binary and Printing size information:
+arm-none-eabi-objcopy -O binary "Test.elf" "Test.bin"
+arm-none-eabi-size "Test.elf"
+   text	   data	    bss	    dec	    hex	filename
+  18856	    120	   4520	  23496	   5bc8	Test.elf
+ 
+00:26:45 **** Incremental Build of configuration Debug for project Test ****
+make all 
+Building file: ../Src/main.c
+Invoking: MCU GCC Compiler
+C:\Users\user\Documents\GitHub\nucleo144_ethernet_node\Test\Debug
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32F767xx -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Device/ST/STM32F7xx/Include" -I"C:/Users/user/Documents/GitHub/nucleo144_ethernet_node/Test/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Src/main.d" -MT"Src/main.o" -o "Src/main.o" "../Src/main.c"
+Finished building: ../Src/main.c
+ 
+Building target: Test.elf
+Invoking: MCU GCC Linker
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -specs=nosys.specs -specs=nano.specs -T"../STM32F767ZITx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "Test.elf" @"objects.list"   -lm
+Finished building target: Test.elf
+ 
+make --no-print-directory post-build
+Generating binary and Printing size information:
+arm-none-eabi-objcopy -O binary "Test.elf" "Test.bin"
+arm-none-eabi-size "Test.elf"
+   text	   data	    bss	    dec	    hex	filename
+  18832	    120	   4520	  23472	   5bb0	Test.elf
+ 

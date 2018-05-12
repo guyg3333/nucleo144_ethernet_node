@@ -1,0 +1,26 @@
+!SESSION 2018-05-12 23:12:09.976 -----------------------------------------------
+eclipse.buildId=4.6.3.M20170301-0400
+java.version=1.8.0_151
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Framework arguments:  -pluginCustomization configuration/st_pref.ini -product org.eclipse.epp.package.cpp.product C:\Users\user\Documents\GitHub\nucleo144_ethernet_node\Test\.project
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -pluginCustomization configuration/st_pref.ini -product org.eclipse.epp.package.cpp.product C:\Users\user\Documents\GitHub\nucleo144_ethernet_node\Test\.project
+
+!ENTRY org.eclipse.egit.ui 2 0 2018-05-12 23:12:22.195
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\user'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY fr.ac6.mcu.ide 1 1 2018-05-12 23:12:23.059
+!MESSAGE Started RMI Server, listening on port 21112
+
+!ENTRY org.eclipse.cdt.core 1 0 2018-05-12 23:12:30.168
+!MESSAGE Indexed 'Test' (25 sources, 98 headers) in 6.25 sec: 10,538 declarations; 40,766 references; 3 unresolved inclusions; 131 syntax errors; 4,433 unresolved names (8%)
+
+!ENTRY org.eclipse.launchbar.core 2 0 2018-05-12 23:15:30.346
+!MESSAGE Enablement expression is missing for descriptor type org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2018-05-12 23:15:30.356
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType

@@ -148,20 +148,20 @@ int main(void)
   HAL_ETH_Start(&heth);
   ITM_SendChar( 65 );   //  Send ASCII code 65 = ’A’
   //Destination address
-  Tx_buf[0] = 0x44;
-  Tx_buf[1] = 0x84;
-  Tx_buf[2] = 0x5B;
-  Tx_buf[3] = 0xDE;
-  Tx_buf[4] = 0x97;
-  Tx_buf[5] = 0xC9;
+  Tx_buf[0] = 0x10;
+  Tx_buf[1] = 0x00;
+  Tx_buf[2] = 0x5C;
+  Tx_buf[3] = 0x00;
+  Tx_buf[4] = 0x00;
+  Tx_buf[5] = 0x01;
 
   //Source address
-   Tx_buf[6]  = 0x1;
-   Tx_buf[7]  = 0x2;
-   Tx_buf[8]  = 0x3;
-   Tx_buf[9]  = 0x4;
-   Tx_buf[10] = 0x5;
-   Tx_buf[11] = 0x6;
+   Tx_buf[6]  = 0xC0;
+   Tx_buf[7]  = 0x4A;
+   Tx_buf[8]  = 0x00;
+   Tx_buf[9]  = 0x21;
+   Tx_buf[10] = 0xFE;
+   Tx_buf[11] = 0xF3;
 
    //0x8000 Ethernet Configuration Testing Protocol
 
@@ -173,7 +173,7 @@ int main(void)
 
    {//Total length
 
-	   uint16_t temp = 0;
+	   uint16_t temp = 50;
 	   Tx_buf[16] = (uint8_t)temp >> 8;
 	   Tx_buf[17] = (uint8_t)temp;
 
@@ -210,43 +210,60 @@ uint16_t arr[20];
 uint32_t arr32 = 0;
 uint32_t temp =  1;
 
-for(int i = 0 ; i < 10 ; i ++ ){
-	arr[i] =  *((uint16_t*)(Tx_buf+14+i*2))<<8;
-	arr[i] |=  *((uint16_t*)(Tx_buf+15+i*2)) & 0x00ff;
-	//arr[i/2] = arr[i/2] << 8;
-	//arr[i/2] =  Tx_buf[15+i];
-}
+	for(int i = 0 ; i < 10 ; i ++ ){
+		arr[i] =  *((uint16_t*)(Tx_buf+14+i*2))<<8;
+		arr[i] |=  *((uint16_t*)(Tx_buf+15+i*2)) & 0x00ff;
+	}
+
+	for(int i=0;i<10;i++)
+		arr32 = arr32 + arr[i];
+
+	while(temp)
+	{
+		temp = 0xf0000 & arr32;
+		temp = temp >> 16;
+		arr32 &= 0xffff;
+		arr32 = arr32 + temp;
+	}
+
+	arr32 =~ arr32;
+
+	ans_checksum = (uint16_t)arr32;
+
+	Tx_buf[24] = (uint8_t)(ans_checksum >> 8);
+	Tx_buf[25] = (uint8_t)ans_checksum;
+
+}//end calculate checksum
 
 
-
-
-for(int i=0;i<10;i++)
-	arr32 = arr32 + arr[i];
-
-while(temp)
+//set the UDP header
 {
-	temp = 0xf0000 & arr32;
-	temp = temp >> 16;
-	arr32 &= 0xffff;
-	arr32 = arr32 + temp;
+
+	uint16_t source_port = 2500;
+	uint16_t destination_port = 2501;
+	uint16_t leangth = 30;
+
+	Tx_buf[34] = (uint8_t)(source_port >> 8);
+	Tx_buf[35] = (uint8_t)source_port;
+
+	Tx_buf[36] = (uint8_t)(destination_port >> 8);
+	Tx_buf[37] = (uint8_t)destination_port;
+
+	Tx_buf[38] = (uint8_t)(leangth >> 8);
+	Tx_buf[39] = (uint8_t)leangth;
+
+	Tx_buf[40] = 0;
+    Tx_buf[41] = 0;
+
+
 }
-
-arr32 =~ arr32;
-
-ans_checksum = (uint16_t)arr32;
-
-Tx_buf[24] = (uint8_t)ans_checksum >> 8;
-Tx_buf[25] = (uint8_t)ans_checksum;
-
-}//calculate checksum
-
 
 
    {
 	   uint8_t ch[50] = "ELIK IS THE KING";
 
 	   for(int i = 0;i<50 ; i++)
-		   Tx_buf[34+i] =  ch[i];
+		   Tx_buf[42+i] =  ch[i];
 
    }
   if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
