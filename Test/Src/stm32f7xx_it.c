@@ -39,9 +39,12 @@
 extern uint32_t pTxMailbox ;
 extern uint8_t CAN_RX_buffer[8];
 extern CAN_RxHeaderTypeDef  CAN_RX_pHeader;
-extern	UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart3;
 extern uint8_t* CAN_TX_buffer;
 extern CAN_TxHeaderTypeDef  CAN_TX_pHeader;
+
+extern uint8_t Tx_buf[200];
+extern volatile uint16_t Pedal_value;
 
 /* USER CODE END 0 */
 
@@ -99,7 +102,7 @@ void CAN1_RX0_IRQHandler(void)
 		_Error_Handler(__FILE__, __LINE__);
 
 
-	printf("\r Reacive \n");
+	//printf("\r Reacive \n");
 	//uint_32_To_string_hex(CAN_RX_pHeader.IDE);
 	//HAL_UART_Transmit(&huart3, (uint8_t*)CAN_RX_buffer, 8, 10);
 	//printf("\n");
@@ -107,10 +110,30 @@ void CAN1_RX0_IRQHandler(void)
 	if(CAN_RX_pHeader.StdId == 0x420){
 		uint32_t guy;
 
-		printf("\r RX \n");
+		//printf("\r RX \n");
 	if( HAL_CAN_AddTxMessage(&hcan1, &CAN_TX_pHeader,CAN_TX_buffer, &guy) != HAL_OK)
 			_Error_Handler(__FILE__, __LINE__);
 	}
+
+	if(CAN_RX_pHeader.StdId == 0x421){
+		Tx_buf[42] = CAN_RX_buffer[0];
+		Tx_buf[43] = CAN_RX_buffer[1];
+		Tx_buf[44] = CAN_RX_buffer[2];
+		Tx_buf[45] = CAN_RX_buffer[3];
+		Tx_buf[46] = CAN_RX_buffer[4];
+		Tx_buf[47] = CAN_RX_buffer[5];
+		Tx_buf[48] = CAN_RX_buffer[6];
+		Tx_buf[49] = CAN_RX_buffer[7];
+
+		if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
+		  _Error_Handler(__FILE__, __LINE__);
+	}
+
+		Pedal_value = CAN_RX_buffer[1];
+		Pedal_value = Pedal_value <<8;
+		Pedal_value|= CAN_RX_buffer[0];
+
+
   /* USER CODE END CAN1_RX0_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan1);
   /* USER CODE BEGIN CAN1_RX0_IRQn 1 */

@@ -59,18 +59,12 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 
-typedef union  ipv4_haeder{
 
-	uint8_t  u8[20];
-	uint16_t u16[10];
 
-}ipv4_haeder;
-
-ipv4_haeder ipv4_header;
 
 
 ETH_DMADescTypeDef Tx_Desc[1]; 			//Ethernet virable
-uint8_t Tx_buf[1524] = {0};
+uint8_t Tx_buf[200] = {0};
 
 
 uint32_t pTxMailbox ;
@@ -80,6 +74,8 @@ uint8_t CAN_RX_buffer[8];
 uint8_t* CAN_TX_buffer;
 CAN_FilterTypeDef FilterConfig;
 
+
+uint16_t volatile Pedal_value;
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -148,12 +144,12 @@ int main(void)
   HAL_ETH_Start(&heth);
   ITM_SendChar( 65 );   //  Send ASCII code 65 = ’A’
   //Destination address
-  Tx_buf[0] = 0x10;
-  Tx_buf[1] = 0x00;
-  Tx_buf[2] = 0x5C;
-  Tx_buf[3] = 0x00;
-  Tx_buf[4] = 0x00;
-  Tx_buf[5] = 0x01;
+  Tx_buf[0] = 0xB8;
+  Tx_buf[1] = 0x27;
+  Tx_buf[2] = 0xEB;
+  Tx_buf[3] = 0x77;
+  Tx_buf[4] = 0xF9;
+  Tx_buf[5] = 0xE1;
 
   //Source address
    Tx_buf[6]  = 0xC0;
@@ -196,10 +192,10 @@ int main(void)
    Tx_buf[28] = 0x03;
    Tx_buf[29] = 0x04;
 
-   Tx_buf[30] = 0x05; // destination IP
-   Tx_buf[31] = 0x06;
-   Tx_buf[32] = 0x07;
-   Tx_buf[33] = 0x08;
+   Tx_buf[30] = 169; // destination IP
+   Tx_buf[31] = 254;
+   Tx_buf[32] = 104;
+   Tx_buf[33] = 249;
 
 
 
@@ -239,8 +235,8 @@ uint32_t temp =  1;
 //set the UDP header
 {
 
-	uint16_t source_port = 2500;
-	uint16_t destination_port = 2501;
+	uint16_t source_port = 2501;
+	uint16_t destination_port = 2500;
 	uint16_t leangth = 30;
 
 	Tx_buf[34] = (uint8_t)(source_port >> 8);
@@ -259,15 +255,15 @@ uint32_t temp =  1;
 }
 
 
-   {
-	   uint8_t ch[50] = "ELIK IS THE KING";
+ //  {
+	  // uint8_t ch[50] = "ELIK IS THE KING";
 
-	   for(int i = 0;i<50 ; i++)
-		   Tx_buf[42+i] =  ch[i];
+	  // for(int i = 0;i<50 ; i++)
+		//   Tx_buf[42+i] =  ch[i];
 
-   }
-  if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
- 	   _Error_Handler(__FILE__, __LINE__);
+//   }
+ // if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
+ //	   _Error_Handler(__FILE__, __LINE__);
 
 
    //====  CAN bus =====//
@@ -323,9 +319,11 @@ uint32_t temp =  1;
 */
    printf("\rMain wheel \n");
 
-  while (1)
+  while (10)
   {
 
+	  HAL_Delay(1);
+	  printf("\r%u        ", (unsigned)Pedal_value);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
