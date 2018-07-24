@@ -510,7 +510,7 @@ HAL_StatusTypeDef HAL_ETH_DMATxDescListInit(ETH_HandleTypeDef *heth, ETH_DMADesc
     else
     {
       /* For last descriptor, set next descriptor address register equal to the first descriptor base address */ 
-      dmatxdesc->Buffer2NextDescAddr = (uint32_t) DMATxDescTab;  
+      dmatxdesc->Buffer2NextDescAddr = (uint32_t) DMATxDescTab;
     }
   }
   
@@ -1802,8 +1802,8 @@ static void ETH_MACDMAConfig(ETH_HandleTypeDef *heth, uint32_t err)
                          dmainit.TransmitThresholdControl |
                          dmainit.ForwardErrorFrames |
                          dmainit.ForwardUndersizedGoodFrames |
-                         dmainit.ReceiveThresholdControl |
-                         dmainit.SecondFrameOperate);
+                         dmainit.ReceiveThresholdControl);// | //guy
+                         //dmainit.SecondFrameOperate);
     
     /* Write to ETHERNET DMAOMR */
     (heth->Instance)->DMAOMR = (uint32_t)tmpreg;

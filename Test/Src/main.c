@@ -63,7 +63,7 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 
 
-ETH_DMADescTypeDef Tx_Desc[1]; 			//Ethernet virable
+ETH_DMADescTypeDef Tx_Desc[3]; 			//Ethernet virable
 uint8_t Tx_buf[200] = {0};
 
 
@@ -141,6 +141,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_ETH_DMATxDescListInit(&heth,Tx_Desc,Tx_buf,1);
+
+
   HAL_ETH_Start(&heth);
   ITM_SendChar( 65 );   //  Send ASCII code 65 = ’A’
   //Destination address
@@ -255,15 +257,27 @@ uint32_t temp =  1;
 }
 
 
- //  {
-	  // uint8_t ch[50] = "ELIK IS THE KING";
+   {
+	   uint8_t ch[50] = "ELIK IS THE KING";
 
-	  // for(int i = 0;i<50 ; i++)
-		//   Tx_buf[42+i] =  ch[i];
+	   for(int i = 0;i<50 ; i++)
+		   Tx_buf[42+i] =  ch[i];
 
-//   }
- // if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
- //	   _Error_Handler(__FILE__, __LINE__);
+   }
+   printf("\r transmit 1\n");
+  // heth.TxDesc= Tx_Desc;
+
+  //heth.TxDesc = Tx_Desc;
+  if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
+ 	   _Error_Handler(__FILE__, __LINE__);
+
+
+
+
+
+
+  	 // HAL_ETH_DMATxDescListInit(&heth,Tx_Desc,Tx_buf,1);
+
 
 
    //====  CAN bus =====//
@@ -310,6 +324,7 @@ uint32_t temp =  1;
 
 
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -317,7 +332,7 @@ uint32_t temp =  1;
 /*
 
 */
-   printf("\rMain wheel \n");
+   printf("\r Main while \n");
 
   while (10)
   {
@@ -608,6 +623,8 @@ void uint_32_To_string_hex(uint32_t ID){
 	HAL_UART_Transmit(&huart3, (uint8_t*)data, 4, 10);
 
 }
+
+
 
 
 /*

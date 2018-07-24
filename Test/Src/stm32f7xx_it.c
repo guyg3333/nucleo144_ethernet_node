@@ -125,8 +125,12 @@ void CAN1_RX0_IRQHandler(void)
 		Tx_buf[48] = CAN_RX_buffer[6];
 		Tx_buf[49] = CAN_RX_buffer[7];
 
-		if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
-		  _Error_Handler(__FILE__, __LINE__);
+	//	if(HAL_ETH_TransmitFrame(&heth,70)!= HAL_OK)
+		//  _Error_Handler(__FILE__, __LINE__);
+	  
+	    // printf("\r reacive can mass and transmith \n");
+
+	  
 	}
 
 		Pedal_value = CAN_RX_buffer[1];
